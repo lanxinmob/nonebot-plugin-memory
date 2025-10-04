@@ -8,15 +8,13 @@ require("nonebot_plugin_apscheduler")
 from .config import Config
 
 __plugin_meta__ = PluginMetadata(
-    name="名称",
-    description="描述",
-    usage="用法",
-    type="application",  # library
+    name="nonebot-plugin-memory",
+    description="对跟bot对话的每个人形成记忆，生成有趣用户档案，用于下次生成回复",
+    usage="https://github.com/lanxinmob/nonebot-plugin-memory/blob/master/README.md",
+    type="application",  
     homepage="https://github.com/lanxinmob/nonebot-plugin-memory",
     config=Config,
     supported_adapters=inherit_supported_adapters("nonebot_plugin_alconna", "nonebot_plugin_uninfo"),
-    # supported_adapters={"~onebot.v11"}, # 仅 onebot
-    extra={"author": "lanxinmob <your@mail.com>"},
 )
 
 from arclet.alconna import Alconna, Args, Arparma, Option, Subcommand
@@ -41,3 +39,6 @@ async def _(result: Arparma):
     package: str = result.other_args["package"]
     logger.info(f"installing {package}")
     await UniMessage.text(package).send()
+
+from . import chat
+from . import precipitate_knowledge

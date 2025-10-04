@@ -2,6 +2,7 @@
     <a href="https://v2.nonebot.dev/store">
     <img src="https://raw.githubusercontent.com/fllesser/nonebot-plugin-template/refs/heads/resource/.docs/NoneBotPlugin.svg" width="310" alt="logo"></a>
 
+## 可塑性记忆
 ## ✨ nonebot-plugin-memory ✨
 [![LICENSE](https://img.shields.io/github/license/lanxinmob/nonebot-plugin-memory.svg)](./LICENSE)
 [![pypi](https://img.shields.io/pypi/v/nonebot-plugin-memory.svg)](https://pypi.python.org/pypi/nonebot-plugin-memory)
@@ -15,7 +16,7 @@
 
 ## 📖 介绍
 
-这里是插件的详细介绍部分
+对跟bot对话的每个人形成记忆，生成有趣的用户档案，用于下次生成回复，也可以通过指令查看已有的用户档案。
 
 ## 💿 安装
 
@@ -92,15 +93,11 @@
 
 | 配置项  | 必填  | 默认值 |   说明   |
 | :-----: | :---: | :----: | :------: |
-| 配置项1 |  是   |   无   | 配置说明 |
-| 配置项2 |  否   |   无   | 配置说明 |
+| DEEPSEEK_API_KEY  |  是   |   无   | 配置说明 |
 
 ## 🎉 使用
 ### 指令表
 | 指令  | 权限  | 需要@ | 范围  |   说明   |
 | :---: | :---: | :---: | :---: | :------: |
-| 指令1 | 主人  |  否   | 私聊  | 指令说明 |
-| 指令2 | 群员  |  是   | 群聊  | 指令说明 |
+| /可塑性记忆 | 所有  |  需要   | 所有  | 输入用户id查看档案 |
 
-### 🎨 效果图
-如果有效果图的话
