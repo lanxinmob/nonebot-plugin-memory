@@ -14,7 +14,7 @@ __plugin_meta__ = PluginMetadata(
     type="application",
     homepage="https://github.com/lanxinmob/nonebot-plugin-memory",
     config=Config,
-    supported_adapters="~onebot.v11",
+    supported_adapters={"~onebot.v11", "~telegram"},
 )
 
 from arclet.alconna import Alconna, Args, Arparma, Option, Subcommand

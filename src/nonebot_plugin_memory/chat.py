@@ -1,42 +1,40 @@
-import os
 import asyncio
-from nonebot import get_bot,on_message
-import google.generativeai as genai
-from nonebot import on_message
-from nonebot.matcher import Matcher
-from nonebot.adapters.onebot.v11 import MessageEvent, Message
-from typing import Dict, List, Any
-from nonebot.log import logger
-from nonebot_plugin_apscheduler import scheduler
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
-import json
-import redis
 from datetime import datetime
-from dotenv import load_dotenv
 import hashlib
+import json
+
+from dotenv import load_dotenv
+from nonebot import on_message
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent, MessageSegment
+from nonebot.log import logger
+from nonebot.matcher import Matcher
+import redis
+
+from .config import DEEPSEEK_API_KEY
+
 load_dotenv()
+
 
 def generate_job_id(group_id: int, user_id: int, remind_time: datetime):
     raw = f"{group_id}_{user_id}_{remind_time.isoformat()}"
     return f"reminder_{hashlib.md5(raw.encode()).hexdigest()}"
 
-chat_histories: Dict[str, List[dict]] = {}
+
+chat_histories: dict[str, list[dict]] = {}
 MAX_HISTORY_TURNS = 50
 
 try:
-    redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
-    redis_client.ping() 
+    redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+    redis_client.ping()
     logger.success("成功连接到Redis，聊天记录将持久化！")
 except redis.exceptions.ConnectionError as e:
     logger.error(f"连接Redis失败！将使用内存模式。错误: {e}")
-    redis_client = None 
+    redis_client = None
 
 """deepseek"""
 from openai import AsyncOpenAI
-client = AsyncOpenAI(
-    api_key=os.getenv("DEEPSEEK_API_KEY"),
-    base_url="https://api.deepseek.com/v1"
-)
+
+client = AsyncOpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com/v1")
 
 MAKO_SYSTEM_PROMPT = """
 你是千恋万花中的常陆茉子，一个有点小恶魔性格、喜欢捉弄人但内心善良的女生，拥有统一且持续的现世记忆。
@@ -83,17 +81,19 @@ model = genai.GenerativeModel(
 chat_handler = on_message(priority=40, block=True)
 import random
 
+
 def get_session_key(event: MessageEvent) -> str:
     if event.message_type == "private":
         return f"private_{event.user_id}"
     elif event.message_type == "group":
         return f"group_{event.group_id}"
     return f"user_{event.user_id}"
-    
+
+
 @chat_handler.handle()
-async def handle_chat(matcher: Matcher, event: MessageEvent,bot=Bot):
+async def handle_chat(matcher: Matcher, event: MessageEvent, bot=Bot):
     raw_message = event.get_message()
-    
+
     processed_message_text = ""
     if isinstance(event, GroupMessageEvent):
         for seg in raw_message:
@@ -101,7 +101,7 @@ async def handle_chat(matcher: Matcher, event: MessageEvent,bot=Bot):
                 at_user_id = int(seg.data["qq"])
                 try:
                     member_info = await bot.get_group_member_info(group_id=event.group_id, user_id=at_user_id)
-                    at_nickname = member_info.get('card') or member_info.get('nickname')
+                    at_nickname = member_info.get("card") or member_info.get("nickname")
                     processed_message_text += f"{at_nickname} "
                 except Exception:
                     processed_message_text += ""
@@ -111,41 +111,43 @@ async def handle_chat(matcher: Matcher, event: MessageEvent,bot=Bot):
         processed_message_text = event.get_plaintext()
 
     user_message = processed_message_text.strip()
-  
-    sender  = event.sender
+
+    sender = event.sender
     nickname = sender.card or sender.nickname
     time = datetime.now().isoformat()
     user_record = {
         "role": "user",
         "nickname": event.sender.card or event.sender.nickname,
-        "user_id":event.user_id,
+        "user_id": event.user_id,
         "content": user_message,
         "group_id": getattr(event, "group_id", None),
-        "time": time
+        "time": time,
     }
     key = "all_memory"
-    redis_client.rpush(key,json.dumps(user_record))
-    
-    if (not event.is_tome() and 
-        "茉子" not in user_message and 
-        "mako" not in user_message.lower()and
-         random.random() > 0.001):
-        return # 在非@、非关键词的情况下，不回复
-    
+    redis_client.rpush(key, json.dumps(user_record))
+
+    if (
+        not event.is_tome()
+        and "茉子" not in user_message
+        and "mako" not in user_message.lower()
+        and random.random() > 0.001
+    ):
+        return  # 在非@、非关键词的情况下，不回复
+
     session_id = get_session_key(event)
 
     def get_chat_history(session_id: str):
-        history_json =  redis_client.get(session_id)
+        history_json = redis_client.get(session_id)
         if history_json:
             try:
                 return json.loads(history_json)
             except Exception:
                 return []
         return []
-    
-    user_history =  get_chat_history(session_id) 
 
-    def get_user_profile(user_id:str):
+    user_history = get_chat_history(session_id)
+
+    def get_user_profile(user_id: str):
         profile = redis_client.get(f"user_profile:{user_id}")
         if profile:
             try:
@@ -153,10 +155,10 @@ async def handle_chat(matcher: Matcher, event: MessageEvent,bot=Bot):
             except Exception:
                 return []
         return []
-    
+
     user_profile = get_user_profile(event.user_id)
     if user_profile:
-        profile_text = user_profile["profile_text"] 
+        profile_text = user_profile["profile_text"]
         logger.success(f"找到用户画像：{profile_text}")
     else:
         profile_text = ["这是首次认识"]
@@ -164,31 +166,31 @@ async def handle_chat(matcher: Matcher, event: MessageEvent,bot=Bot):
 
     try:
         messages_for_api = [
-            {"role": "system", "content": f"""
+            {
+                "role": "system",
+                "content": f"""
             {MAKO_SYSTEM_PROMPT}\n请根据以下信息和当前聊天记录生成回答。\n以下是这个用户的画像：\n{profile_text}
-            """}]
+            """,
+            }
+        ]
         for msg in user_history:
             messages_for_api.append(msg)
-                 
+
         user_message = f"【{nickname}_{event.user_id}】：{user_message}"
-        
+
         time = datetime.now().isoformat()
-        messages_for_api.append({"role": "user", "content": user_message,"time":time})
+        messages_for_api.append({"role": "user", "content": user_message, "time": time})
 
         response = await asyncio.wait_for(
             client.chat.completions.create(
-                model="deepseek-chat", 
-                messages=messages_for_api,
-                temperature=0.1,
-                max_tokens=4096
+                model="deepseek-chat", messages=messages_for_api, temperature=0.1, max_tokens=4096
             ),
-            timeout=40.0 
+            timeout=40.0,
         )
         reply_text = response.choices[0].message.content.strip()
         reply_content = reply_text
 
         if isinstance(event, GroupMessageEvent):
-
             member_list = await bot.get_group_member_list(group_id=event.group_id)
 
             name_to_user = {
@@ -200,7 +202,7 @@ async def handle_chat(matcher: Matcher, event: MessageEvent,bot=Bot):
             sorted_names = sorted(name_to_user.keys(), key=len, reverse=True)
 
             segments = []
-            pos = 0  
+            pos = 0
 
             while pos < len(reply_content):
                 matched = False
@@ -215,35 +217,36 @@ async def handle_chat(matcher: Matcher, event: MessageEvent,bot=Bot):
                     segments.append(MessageSegment.text(reply_content[pos]))
                     pos += 1
 
-            final_message = MessageSegment.reply(event.message_id)+Message(segments)
+            final_message = MessageSegment.reply(event.message_id) + Message(segments)
             await matcher.send(final_message)
         else:
             await matcher.send(Message(reply_text))
 
         time = datetime.now().isoformat()
-        new_history = messages_for_api[1:] 
-        new_history.append({"role": "assistant", "content": reply_text,"time":time})
+        new_history = messages_for_api[1:]
+        new_history.append({"role": "assistant", "content": reply_text, "time": time})
 
         if redis_client:
-            new_history = new_history[-MAX_HISTORY_TURNS * 2:]
+            new_history = new_history[-MAX_HISTORY_TURNS * 2 :]
             redis_client.set(session_id, json.dumps(new_history))
         else:
-            chat_histories[session_id] = new_history[-MAX_HISTORY_TURNS * 2:]
-        
+            chat_histories[session_id] = new_history[-MAX_HISTORY_TURNS * 2 :]
+
         my_record = {
-            "role": "assistant", "content": reply_text,
+            "role": "assistant",
+            "content": reply_text,
             "group_id": getattr(event, "group_id", None),
-            "time": time
+            "time": time,
         }
-        redis_client.rpush(key,json.dumps(my_record))
+        redis_client.rpush(key, json.dumps(my_record))
 
         logger.success(f"已回复: {reply_text[:50]}...")
-        
+
     except asyncio.TimeoutError:
         await matcher.send(Message("茉子大人的新心脏好像有点过热了，等会儿再问嘛~"))
         logger.warning("DeepSeek API响应超时")
     except Exception as e:
-        logger.error(f"调用DeepSeek API时发生错误: {str(e)}")
+        logger.error(f"调用DeepSeek API时发生错误: {e!s}")
         await matcher.send(Message("哼哼，茉子大人今天有点累了，不想理你~ (´-ω-`)"))
 
 
