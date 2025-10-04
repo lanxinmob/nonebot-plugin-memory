@@ -15,10 +15,19 @@
 </div>
 
 ## 📖 介绍
+为每位用户生成独立画像的记忆插件。对跟bot对话的每个人形成记忆，生成有趣的用户档案，用于下次生成回复，也可以通过指令查看已有的用户档案。
 
-对跟bot对话的每个人形成记忆，生成有趣的用户档案，用于下次生成回复，也可以通过指令查看已有的用户档案。
+## 功能
+- 自动保存用户发言
+- 每日生成或更新用户画像
+- 指令查看印象
+
 
 ## 💿 安装
+
+```bash
+pip install nonebot-plugin-memory
+```
 
 <details open>
 <summary>使用 nb-cli 安装</summary>
@@ -31,60 +40,6 @@
 使用**清华源**安装
 
     nb plugin install nonebot-plugin-memory --upgrade -i "https://pypi.tuna.tsinghua.edu.cn/simple"
-
-
-</details>
-
-<details>
-<summary>使用包管理器安装</summary>
-在 nonebot2 项目的插件目录下, 打开命令行, 根据你使用的包管理器, 输入相应的安装命令
-
-<details open>
-<summary>uv</summary>
-
-    uv add nonebot-plugin-memory
-安装仓库 master 分支
-
-    uv add git+https://github.com/lanxinmob/nonebot-plugin-memory@master
-</details>
-
-<details>
-<summary>pdm</summary>
-
-    pdm add nonebot-plugin-memory
-安装仓库 master 分支
-
-    pdm add git+https://github.com/lanxinmob/nonebot-plugin-memory@master
-</details>
-<details>
-<summary>poetry</summary>
-
-    poetry add nonebot-plugin-memory
-安装仓库 master 分支
-
-    poetry add git+https://github.com/lanxinmob/nonebot-plugin-memory@master
-</details>
-
-打开 nonebot2 项目根目录下的 `pyproject.toml` 文件, 在 `[tool.nonebot]` 部分追加写入
-
-    plugins = ["nonebot_plugin_memory"]
-
-</details>
-
-<details>
-<summary>使用 nbr 安装(使用 uv 管理依赖可用)</summary>
-
-[nbr](https://github.com/fllesser/nbr) 是一个基于 uv 的 nb-cli，可以方便地管理 nonebot2
-
-    nbr plugin install nonebot-plugin-memory
-使用 **pypi** 源安装
-
-    nbr plugin install nonebot-plugin-memory -i "https://pypi.org/simple"
-使用**清华源**安装
-
-    nbr plugin install nonebot-plugin-memory -i "https://pypi.tuna.tsinghua.edu.cn/simple"
-
-</details>
 
 
 ## ⚙️ 配置
