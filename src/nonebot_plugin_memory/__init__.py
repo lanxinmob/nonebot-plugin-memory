@@ -1,5 +1,5 @@
 from nonebot import logger, require
-from nonebot.plugin import PluginMetadata, inherit_supported_adapters
+from nonebot.plugin import PluginMetadata
 
 require("nonebot_plugin_uninfo")
 require("nonebot_plugin_alconna")
@@ -11,10 +11,10 @@ __plugin_meta__ = PluginMetadata(
     name="nonebot-plugin-memory",
     description="对跟bot对话的每个人形成记忆，生成有趣用户档案，用于下次生成回复",
     usage="https://github.com/lanxinmob/nonebot-plugin-memory/blob/master/README.md",
-    type="application",  
+    type="application",
     homepage="https://github.com/lanxinmob/nonebot-plugin-memory",
     config=Config,
-    supported_adapters=inherit_supported_adapters("nonebot_plugin_alconna", "nonebot_plugin_uninfo"),
+    supported_adapters="~onebot.v11",
 )
 
 from arclet.alconna import Alconna, Args, Arparma, Option, Subcommand
@@ -40,5 +40,5 @@ async def _(result: Arparma):
     logger.info(f"installing {package}")
     await UniMessage.text(package).send()
 
-from . import chat
-from . import precipitate_knowledge
+
+from . import chat, precipitate_knowledge  # noqa: F401
