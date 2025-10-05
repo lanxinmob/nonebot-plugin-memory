@@ -2,19 +2,23 @@ import asyncio
 from datetime import datetime
 import hashlib
 import json
+
 from dotenv import load_dotenv
 from nonebot import on_message
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent, MessageSegment
 from nonebot.log import logger
 from nonebot.matcher import Matcher
 import redis
+
 from .config import DEEPSEEK_API_KEY
 
 load_dotenv()
 
+
 def generate_job_id(group_id: int, user_id: int, remind_time: datetime):
     raw = f"{group_id}_{user_id}_{remind_time.isoformat()}"
     return f"reminder_{hashlib.md5(raw.encode()).hexdigest()}"
+
 
 chat_histories: dict[str, list[dict]] = {}
 MAX_HISTORY_TURNS = 50
@@ -29,6 +33,7 @@ except redis.exceptions.ConnectionError as e:
 
 """deepseek"""
 from openai import AsyncOpenAI
+
 client = AsyncOpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com/v1")
 
 SYSTEM_PROMPT = """
@@ -63,6 +68,7 @@ SYSTEM_PROMPT = """
 
 chat_handler = on_message(priority=40, block=True)
 import random
+
 
 def get_session_key(event: MessageEvent) -> str:
     if event.message_type == "private":
@@ -108,10 +114,7 @@ async def handle_chat(matcher: Matcher, event: MessageEvent, bot=Bot):
     key = "all_memory"
     redis_client.rpush(key, json.dumps(user_record))
 
-    if (
-        not event.is_tome()
-        and random.random() > 0.001
-    ):
+    if not event.is_tome() and random.random() > 0.001:
         return  # 在非@、非关键词的情况下，不回复
 
     session_id = get_session_key(event)
