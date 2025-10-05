@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-memory"
-version = "0.1.9"
+version = "0.1.10"
 description = "对跟bot对话的每个人形成记忆，生成有趣的用户档案，用于下次生成回复，也可以通过指令查看已有的用户档案。"
 readme = "README.md"
 authors = [{ name = "lanxinmob", email = "mobu54511@gmail.com" }]

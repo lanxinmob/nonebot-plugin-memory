@@ -41,6 +41,26 @@ pip install nonebot-plugin-memory
 
     nb plugin install nonebot-plugin-memory --upgrade -i "https://pypi.tuna.tsinghua.edu.cn/simple"
 
+## 💾 持久化存储 
+
+本插件依赖 Redis 数据库来实现用户档案和聊天记忆的持久化存储，需自行安装和启动 Redis 服务。
+
+使用 Docker (推荐)
+
+```Bash
+# 启动 Redis 服务器，并将其映射到主机的 6379 端口
+docker run --name nonebot-redis -p 6379:6379 -d redis
+```
+在 Linux 上安装 (以 Ubuntu/Debian 为例)
+```Bash
+# 安装 Redis 服务器
+sudo apt update
+sudo apt install redis-server
+
+# 检查服务状态
+sudo systemctl status redis-server
+#确保服务状态显示为 active (running)，插件即可通过默认配置（localhost:6379）连接。
+```
 
 ## ⚙️ 配置
 
@@ -48,7 +68,12 @@ pip install nonebot-plugin-memory
 
 | 配置项  | 必填  | 默认值 |   说明   |
 | :-----: | :---: | :----: | :------: |
-| DEEPSEEK_API_KEY  |  是   |   无   | 配置说明 |
+| DEEPSEEK_API_KEY  |  是   |   无   | DeepSeek API 密钥，插件需要此密钥来驱动大模型的对话和画像生成功能 |
+|REDIS_HOST| 	否	|localhost|	Redis 数据库服务器的主机地址。
+|REDIS_PORT|	否	|6379|	Redis 数据库服务器的端口。
+|REDIS_DB	|否	|0	|Redis 数据库编号。|
+- 如果将 Redis 运行在非默认地址或端口，需要在 `.env` 文件中配置 `REDIS_HOST` 和 `REDIS_PORT` 来覆盖插件代码中的默认值
+
 
 ## 🎉 使用
 ### 指令表
@@ -56,3 +81,5 @@ pip install nonebot-plugin-memory
 | :---: | :---: | :---: | :---: | :------: |
 | /可塑性记忆 | 所有  |  需要   | 所有  | 输入用户id查看档案 |
 
+### 提示词
+- 系统提示词 `SYSTEM_PROMPT` 设定为千恋万花中的常陆茉子，可以自行更换为其他设定。
