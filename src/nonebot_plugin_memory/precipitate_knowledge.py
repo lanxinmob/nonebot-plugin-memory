@@ -1,7 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
 import json
-
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import Message
 from nonebot.exception import FinishedException
@@ -9,15 +8,19 @@ from nonebot.log import logger
 from nonebot.matcher import Matcher
 from nonebot.params import ArgPlainText, CommandArg
 from nonebot_plugin_apscheduler import scheduler
-import redis
-
+import redis.asyncio as redis
+from .config import REDIS_HOST, REDIS_PORT, REDIS_DB 
 from . import chat
 
 
 @scheduler.scheduled_job("cron", hour=22, minute=0)
 async def precipitate_knowledge():
-    redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
-    all_logs = redis_client.lrange("all_memory", 0, -1)
+    redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
+    if not redis_client:
+        logger.warning("Redis 客户端未连接,跳过沉淀任务")
+        return
+    
+    all_logs = await redis_client.lrange("all_memory", 0, -1)
 
     try:
         logs = []
@@ -36,7 +39,7 @@ async def precipitate_knowledge():
                 nickname = user_log[0]["nickname"]
                 chat_log = [log["content"] for log in user_log]
                 key = f"{PROFILE_PREFIX}{uid}"
-                old_profile = redis_client.get(key)
+                old_profile = await redis_client.get(key)
                 if old_profile:
                     old_profile = json.loads(old_profile)
                     prompt_user = f"""
@@ -85,7 +88,7 @@ async def precipitate_knowledge():
                     "profile_text": profile_text,
                     "last_updated": datetime.now().isoformat(),
                 }
-                redis_client.set(key, json.dumps(user_profile))
+                await redis_client.set(key, json.dumps(user_profile))
                 logger.success(f"已建立 {nickname} 的茉子印象")
 
     except Exception as e:

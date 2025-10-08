@@ -2,17 +2,13 @@ import asyncio
 from datetime import datetime
 import hashlib
 import json
-
-from dotenv import load_dotenv
 from nonebot import on_message
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent, MessageSegment
 from nonebot.log import logger
 from nonebot.matcher import Matcher
-import redis
-
-from .config import DEEPSEEK_API_KEY
-
-load_dotenv()
+import redis.asyncio as redis
+from nonebot import get_driver
+from .config import DEEPSEEK_API_KEY,REDIS_HOST, REDIS_PORT, REDIS_DB 
 
 
 def generate_job_id(group_id: int, user_id: int, remind_time: datetime):
@@ -23,17 +19,21 @@ def generate_job_id(group_id: int, user_id: int, remind_time: datetime):
 chat_histories: dict[str, list[dict]] = {}
 MAX_HISTORY_TURNS = 50
 
-try:
-    redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
-    redis_client.ping()
-    logger.success("成功连接到Redis，聊天记录将持久化！")
-except redis.exceptions.ConnectionError as e:
-    logger.error(f"连接Redis失败！将使用内存模式。错误: {e}")
-    redis_client = None
+redis_client: redis.Redis | None = None
+@get_driver().on_startup
+async def connect_redis_on_startup():
+    global redis_client
+    try:
+        temp_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
+        await temp_client.ping()
+        redis_client = temp_client
+        logger.success("成功连接到Redis，聊天记录将持久化！")
+    except redis.exceptions.ConnectionError as e:
+        logger.error(f"连接Redis失败！将使用内存模式。错误: {e}")
+        redis_client = None
 
 """deepseek"""
 from openai import AsyncOpenAI
-
 client = AsyncOpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com/v1")
 
 SYSTEM_PROMPT = """
@@ -112,15 +112,15 @@ async def handle_chat(matcher: Matcher, event: MessageEvent, bot=Bot):
         "time": time,
     }
     key = "all_memory"
-    redis_client.rpush(key, json.dumps(user_record))
+    await redis_client.rpush(key, json.dumps(user_record))
 
     if not event.is_tome() and random.random() > 0.001:
         return  # 在非@、非关键词的情况下，不回复
 
     session_id = get_session_key(event)
 
-    def get_chat_history(session_id: str):
-        history_json = redis_client.get(session_id)
+    async def get_chat_history(session_id: str):
+        history_json = await redis_client.get(session_id)
         if history_json:
             try:
                 return json.loads(history_json)
@@ -130,8 +130,8 @@ async def handle_chat(matcher: Matcher, event: MessageEvent, bot=Bot):
 
     user_history = get_chat_history(session_id)
 
-    def get_user_profile(user_id: str):
-        profile = redis_client.get(f"user_profile:{user_id}")
+    async def get_user_profile(user_id: str):
+        profile = await redis_client.get(f"user_profile:{user_id}")
         if profile:
             try:
                 return json.loads(profile)
@@ -211,7 +211,7 @@ async def handle_chat(matcher: Matcher, event: MessageEvent, bot=Bot):
 
         if redis_client:
             new_history = new_history[-MAX_HISTORY_TURNS * 2 :]
-            redis_client.set(session_id, json.dumps(new_history))
+            await redis_client.set(session_id, json.dumps(new_history))
         else:
             chat_histories[session_id] = new_history[-MAX_HISTORY_TURNS * 2 :]
 
@@ -221,7 +221,7 @@ async def handle_chat(matcher: Matcher, event: MessageEvent, bot=Bot):
             "group_id": getattr(event, "group_id", None),
             "time": time,
         }
-        redis_client.rpush(key, json.dumps(my_record))
+        await redis_client.rpush(key, json.dumps(my_record))
 
         logger.success(f"已回复: {reply_text[:50]}...")
 
