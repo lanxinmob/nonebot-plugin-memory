@@ -68,11 +68,11 @@ sudo systemctl status redis-server
 
 | 配置项  | 必填  | 默认值 |   说明   |
 | :-----: | :---: | :----: | :------: |
-| DEEPSEEK_API_KEY  |  是   |   无   | DeepSeek API 密钥，插件需要此密钥来驱动大模型的对话和画像生成功能 |
-|REDIS_HOST| 	否	|localhost|	Redis 数据库服务器的主机地址。
-|REDIS_PORT|	否	|6379|	Redis 数据库服务器的端口。
-|REDIS_DB	|否	|0	|Redis 数据库编号。|
-- 如果将 Redis 运行在非默认地址或端口，需要在 `.env` 文件中配置 `REDIS_HOST` 和 `REDIS_PORT` 来覆盖插件代码中的默认值
+| memory_deepseek_api_key  |  是   |   无   | DeepSeek API 密钥，插件需要此密钥来驱动大模型的对话和画像生成功能 |
+|memory_redis_host| 	否	|localhost|	Redis 数据库服务器的主机地址。
+|memory_redis_port|	否	|6379|	Redis 数据库服务器的端口。
+|memory_redis_db	|否	|0	|Redis 数据库编号。|
+- 如果将 Redis 运行在非默认地址或端口，需要在 `.env` 文件中配置 `memory_redis_host` 和 `memory_redis_port` 来覆盖插件代码中的默认值
 
 
 ## 🎉 使用

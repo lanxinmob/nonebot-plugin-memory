@@ -9,13 +9,13 @@ from nonebot.matcher import Matcher
 from nonebot.params import ArgPlainText, CommandArg
 from nonebot_plugin_apscheduler import scheduler
 import redis.asyncio as redis
-from .config import REDIS_HOST, REDIS_PORT, REDIS_DB 
+from .config import MEMORY_REDIS_HOST, MEMORY_REDIS_PORT, MEMORY_REDIS_DB 
 from . import chat
 
 
 @scheduler.scheduled_job("cron", hour=22, minute=0)
 async def precipitate_knowledge():
-    redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
+    redis_client = redis.Redis(host=MEMORY_REDIS_HOST, port=MEMORY_REDIS_PORT, db=MEMORY_REDIS_DB, decode_responses=True)
     if not redis_client:
         logger.warning("Redis 客户端未连接,跳过沉淀任务")
         return

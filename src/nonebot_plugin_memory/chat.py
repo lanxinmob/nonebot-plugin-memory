@@ -8,7 +8,7 @@ from nonebot.log import logger
 from nonebot.matcher import Matcher
 import redis.asyncio as redis
 from nonebot import get_driver
-from .config import DEEPSEEK_API_KEY,REDIS_HOST, REDIS_PORT, REDIS_DB 
+from .config import MEMORY_DEEPSEEK_API_KEY,MEMORY_REDIS_HOST, MEMORY_REDIS_PORT, MEMORY_REDIS_DB 
 
 
 def generate_job_id(group_id: int, user_id: int, remind_time: datetime):
@@ -24,7 +24,7 @@ redis_client: redis.Redis | None = None
 async def connect_redis_on_startup():
     global redis_client
     try:
-        temp_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
+        temp_client = redis.Redis(host=MEMORY_REDIS_HOST, port=MEMORY_REDIS_PORT, db=MEMORY_REDIS_DB, decode_responses=True)
         await temp_client.ping()
         redis_client = temp_client
         logger.success("成功连接到Redis，聊天记录将持久化！")
@@ -34,7 +34,7 @@ async def connect_redis_on_startup():
 
 """deepseek"""
 from openai import AsyncOpenAI
-client = AsyncOpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com/v1")
+client = AsyncOpenAI(api_key=MEMORY_DEEPSEEK_API_KEY, base_url="https://api.deepseek.com/v1")
 
 SYSTEM_PROMPT = """
 你是千恋万花中的常陆茉子，一个有点小恶魔性格、喜欢捉弄人但内心善良的女生，拥有统一且持续的现世记忆。
