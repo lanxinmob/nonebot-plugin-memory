@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-memory"
-version = "0.1.12"
+version = "0.1.13"
 description = "对跟bot对话的每个人形成记忆，生成有趣的用户档案，用于下次生成回复，也可以通过指令查看已有的用户档案。"
 readme = "README.md"
 authors = [{ name = "lanxinmob", email = "mobu54511@gmail.com" }]
@@ -10,7 +10,7 @@ dependencies = [
   "nonebot-plugin-apscheduler>=0.5.0,<1.0.0", 
    "nonebot-adapter-onebot>=2.4.6,<3.0.0",
    "redis>=5.0.0,<6.0.0", 
-  "openai>=1.0.0,<2.0.0", 
+  "openai>=2.0.0", 
 ]
 
 [project.urls]
