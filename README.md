@@ -41,6 +41,8 @@ pip install nonebot-plugin-memory
 
     nb plugin install nonebot-plugin-memory --upgrade -i "https://pypi.tuna.tsinghua.edu.cn/simple"
 
+</details>
+
 ## 💾 持久化存储 
 
 本插件依赖 Redis 数据库来实现用户档案和聊天记忆的持久化存储，需自行安装和启动 Redis 服务。
@@ -48,8 +50,8 @@ pip install nonebot-plugin-memory
 使用 Docker (推荐)
 
 ```Bash
-# 启动 Redis 服务器，并将其映射到主机的 6379 端口
-docker run --name nonebot-redis -p 6379:6379 -d redis
+# 仅供本机插件连接；数据保存在 Docker volume 中
+docker run --name nonebot-redis -p 127.0.0.1:6379:6379 -v nonebot-redis-data:/data -d redis:7 redis-server --appendonly yes
 ```
 在 Linux 上安装 (以 Ubuntu/Debian 为例)
 ```Bash
@@ -69,8 +71,8 @@ sudo systemctl status redis-server
 | 配置项  | 必填  | 默认值 |   说明   |
 | :-----: | :---: | :----: | :------: |
 | memory_deepseek_api_key  |  是   |   无   | DeepSeek API 密钥，插件需要此密钥来驱动大模型的对话和画像生成功能 |
-|memory_redis_host| 	否	|localhost|	Redis 数据库服务器的主机地址。
-|memory_redis_port|	否	|6379|	Redis 数据库服务器的端口。
+|memory_redis_host| 	否	|localhost|	Redis 数据库服务器的主机地址。 |
+|memory_redis_port|	否	|6379|	Redis 数据库服务器的端口。 |
 |memory_redis_db	|否	|0	|Redis 数据库编号。|
 - 如果将 Redis 运行在非默认地址或端口，需要在 `.env` 文件中配置 `memory_redis_host` 和 `memory_redis_port` 来覆盖插件代码中的默认值
 
